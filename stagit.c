@@ -560,11 +560,13 @@ size_t
 writeblobhtml(FILE *fp, const git_blob *blob)
 {
 	size_t n = 0, i, len, prev;
-	const char *nfmt = "<a href=\"#l%zu\" class=\"line\" id=\"l%zu\">%7zu</a> ";
+	const char *nfmt = "<a href=\"#l%zu\" class=\"line\" id=\"l%zu\">%7zu</a>\n";
 	const char *s = git_blob_rawcontent(blob);
 
 	len = git_blob_rawsize(blob);
-	fputs("<pre id=\"blob\">\n", fp);
+
+	/* first, write the line numbers in one td, then the code in the next td. */
+	fputs("<table id=\"blob\">\n<tr><td class=\"linenumbers\"><pre>", fp);
 
 	if (len > 0) {
 		for (i = 0, prev = 0; i < len; i++) {
@@ -572,19 +574,33 @@ writeblobhtml(FILE *fp, const git_blob *blob)
 				continue;
 			n++;
 			fprintf(fp, nfmt, n, n, n);
-			xmlencodeline(fp, &s[prev], i - prev + 1);
-			putc('\n', fp);
 			prev = i + 1;
 		}
 		/* trailing data */
 		if ((len - prev) > 0) {
 			n++;
 			fprintf(fp, nfmt, n, n, n);
+		}
+	}
+
+	fputs("</pre></td>\n", fp);
+	fputs("<td class=\"line\"><pre><code>", fp);
+
+	if (len > 0) {
+		for (i = 0, prev = 0; i < len; i++) {
+			if (s[i] != '\n')
+				continue;
+			xmlencodeline(fp, &s[prev], i - prev + 1);
+			putc('\n', fp);
+			prev = i + 1;
+		}
+		/* trailing data */
+		if ((len - prev) > 0) {
 			xmlencodeline(fp, &s[prev], len - prev);
 		}
 	}
 
-	fputs("</pre>\n", fp);
+	fputs("</code></pre></td></tr></table>\n", fp);
 
 	return n;
 }
