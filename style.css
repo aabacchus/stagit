@@ -1,7 +1,8 @@
 body {
 	color: #000;
-	background-color: #fff;
+	background: #eee;
 	font-family: monospace;
+	font-size: 16px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -55,7 +56,7 @@ table td {
 #index tr:hover td,
 #log tr:hover td,
 #files tr:hover td {
-	background-color: #eee;
+	background-color: #ddd;
 }
 
 #index tr td:nth-child(2),
@@ -105,22 +106,23 @@ pre a.d:hover {
 	text-decoration: none;
 }
 
+<<<<<<< HEAD
 @media (prefers-color-scheme: dark) {
 	body {
-		background-color: #000;
-		color: #bdbdbd;
+		background: #292929;
+		color: #fff;
 	}
 	hr {
 		border-color: #222;
 	}
 	a {
-		color: #56c8ff;
+		color: #6cf;
 	}
 	a:target {
 		background-color: #222;
 	}
 	.desc {
-		color: #aaa;
+		color: #999;
 	}
 	#blob a {
 		color: #555;
@@ -149,6 +151,6 @@ pre a.d:hover {
 	#index tr:hover td,
 	#log tr:hover td,
 	#files tr:hover td {
-		background-color: #111;
+		background-color: #333;
 	}
 }
