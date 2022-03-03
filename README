@@ -152,7 +152,7 @@ Features
 - Detect submodules (.gitmodules file) from HEAD and link it as a webpage.
 - Atom feed of the commit log (atom.xml).
 - Atom feed of the tags/refs (tags.xml).
-- Make index page for multiple repositories with stagit-index.
+- Make index page for multiple repositories with stagit-index with custom elements.
 - After generating the pages (relatively slow) serving the files is very fast,
   simple and requires little resources (because the content is static), only
   a HTTP file server is required.

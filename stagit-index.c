@@ -93,7 +93,23 @@ printtimeshort(FILE *fp, const git_time *intime)
 }
 
 void
-writeheader(FILE *fp)
+writecustom(char *fn, FILE *fp) {
+	if (fn == NULL)
+		return;
+	FILE *from = fopen(fn, "r");
+	if (from == NULL) {
+		perror(fn);
+		return;
+	}
+	size_t n = 0;
+	char buf[100] = {'\0'};
+	while ((n = fread(buf, 1, 100, from)) > 0)
+		fwrite(buf, 1, n, fp);
+	fclose(from);
+}
+
+void
+writeheader(char *fn, FILE *fp)
 {
 	fputs("<!DOCTYPE html>\n"
 		"<html>\n<head>\n"
@@ -104,6 +120,7 @@ writeheader(FILE *fp)
 	fprintf(fp, "</title>\n<link rel=\"icon\" type=\"image/png\" href=\"%sfavicon.png\" />\n", relpath);
 	fprintf(fp, "<link rel=\"stylesheet\" type=\"text/css\" href=\"%sstyle.css\" />\n", relpath);
 	fputs("</head>\n<body>\n", fp);
+	writecustom(fn, fp);
 	fprintf(fp, "<table>\n<tr><td><img src=\"%slogo.png\" alt=\"\" width=\"32\" height=\"32\" /></td>\n"
 	        "<td><span class=\"desc\">", relpath);
 	xmlencode(fp, description, strlen(description));
@@ -116,9 +133,11 @@ writeheader(FILE *fp)
 }
 
 void
-writefooter(FILE *fp)
+writefooter(char *fn, FILE *fp)
 {
-	fputs("</tbody>\n</table>\n</div>\n</body>\n</html>\n", fp);
+	fputs("</tbody>\n</table>\n</div>\n", fp);
+	writecustom(fn, fp);
+	fputs("</body>\n</html>\n", fp);
 }
 
 int
@@ -177,9 +196,26 @@ main(int argc, char *argv[])
 	char path[PATH_MAX], repodirabs[PATH_MAX + 1];
 	const char *repodir;
 	int i, ret = 0;
+	char *prefile, *postfile;
+	prefile = postfile = NULL;
 
-	if (argc < 2) {
-		fprintf(stderr, "usage: %s [repodir...]\n", argv[0]);
+	int c;
+	while ((c = getopt(argc, argv, "P:p:")) != -1) {
+		switch (c) {
+			case 'P':
+				postfile = optarg;
+				break;
+			case 'p':
+				prefile = optarg;
+				break;
+			default:
+				fprintf(stderr, "%s [-p pre_body] [-P post_body] [repodir...]\n", argv[0]);
+				return 1;
+		}
+	}
+
+	if (argc - optind < 1) {
+		fprintf(stderr, "usage: %s [-p pre_body] [-P post_body] [repodir...]\n", argv[0]);
 		return 1;
 	}
 
@@ -196,9 +232,9 @@ main(int argc, char *argv[])
 		err(1, "pledge");
 #endif
 
-	writeheader(stdout);
+	writeheader(prefile, stdout);
 
-	for (i = 1; i < argc; i++) {
+	for (i = optind; i < argc; i++) {
 		repodir = argv[i];
 		if (!realpath(repodir, repodirabs))
 			err(1, "realpath");
@@ -246,7 +282,7 @@ main(int argc, char *argv[])
 		}
 		writelog(stdout);
 	}
-	writefooter(stdout);
+	writefooter(postfile, stdout);
 
 	/* cleanup */
 	git_repository_free(repo);
